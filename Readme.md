@@ -2,6 +2,16 @@
 
 This project converts Figma file data to a Directed Acyclic Graph (DAG).
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Testing](#testing)
+- [My Intuition and Building Process](#my-intuition-and-building-process)
+- [Deliverables](#deliverables)
+- [Using API](#using-api)
+
 ### Prerequisites
 
 Before using the deploy script, ensure you have the following:
@@ -152,3 +162,9 @@ graph TD
 - Working integration with db for storing and retrieving DAGs. - Done
 - Ensure HTTPS endpoint works - Done
 - Successful testing with the provided Figma prototypes. - Done
+
+### Using API
+
+```sh
+curl -X POST https://<api-gateway-url>/figma -H "Content-Type: application/json" -d '{"file_key": "<figma-file-key>", "access_token": "<figma-access-token>", "build_adjacency_matrix": "<true/false>"}'
+```
