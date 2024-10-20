@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"file_key\": \"At5yBr6sjIBu2Wrezzo9HD\", \"access_token\": \"1234567890\", \"build_adjacency_matrix\": true}"
+}
