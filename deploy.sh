@@ -54,7 +54,7 @@ sam build
 echo "Deploying the SAM application..."
 sam deploy \
     --stack-name $STACK_NAME \
-    --resolve-s3 \
+    --s3-bucket $BUCKET_NAME \
     --capabilities CAPABILITY_IAM \
     --region $AWS_REGION \
     --no-confirm-changeset \
