@@ -1,0 +1,27 @@
+const INTERACTION_TYPES = new Set([
+  "ON_CLICK",
+  "ON_HOVER",
+  "DRAG",
+  "ON_KEY_PRESS",
+  "MOUSE_UP",
+  "MOUSE_DOWN",
+  "ON_SCROLL",
+]);
+
+const INTERACTIVE_NODE_TYPES = new Set([
+  "FRAME",
+  "COMPONENT",
+  "PAGE",
+  "INSTANCE",
+  "SECTION",
+  "TEXT",
+  "VECTOR",
+  "BOOLEAN_OPERATION",
+  "ELLIPSE",
+  "LINE",
+  "REGULAR_POLYGON",
+  "STAR",
+  "RECTANGLE",
+]);
+
+export { INTERACTION_TYPES, INTERACTIVE_NODE_TYPES };
