@@ -166,5 +166,5 @@ graph TD
 ### Using API
 
 ```sh
-curl -X POST https://<api-gateway-url>/figma -H "Content-Type: application/json" -d '{"file_key": "<figma-file-key>", "access_token": "<figma-access-token>", "build_adjacency_matrix": "<true/false>"}'
+curl -X POST https://<api-gateway-url>/figmaToDAG -H "Content-Type: application/json" -d '{"file_key": "<figma-file-key>", "access_token": "<figma-access-token>", "build_adjacency_matrix": "<true/false>"}'
 ```
