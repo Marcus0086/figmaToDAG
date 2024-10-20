@@ -7,6 +7,11 @@ if ! command -v aws &> /dev/null; then
     exit 1
 fi
 
+if ! command -v sam &> /dev/null; then
+    echo "Error: SAM CLI is not installed or not in PATH. Please install SAM CLI and try again."
+    exit 1
+fi
+
 AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 AWS_REGION=$(aws configure get region)
@@ -49,6 +54,7 @@ sam build
 echo "Deploying the SAM application..."
 sam deploy \
     --stack-name $STACK_NAME \
+    --resolve-s3 \
     --capabilities CAPABILITY_IAM \
     --region $AWS_REGION \
     --no-confirm-changeset \
