@@ -54,7 +54,9 @@ Requirements:
 1. Graph Construction:
 
 - To construct the graph I need to created nodes and edges.
-  > Node creation
+
+> Node creation
+
 - Nodes wil be created from Figma frame, page or other components like (Text, Rectange, etc)
 - I need to store the nodes with `id`, `label` and `image`.
 
@@ -129,7 +131,8 @@ Improvements:
 - We can then fetch the data from DB if the version matches.
 - We can store the graph in S3 with version and file key. S3 is better choice since we can fetch the data multiple times and data is huge and json serializable.
 
-```mermaidgraph TD
+```mermaid
+graph TD
     A[User Request] -->|API Request| B[Lambda Function]
     B --> |Request Version|Version[Figma File Version]
     B --> DAG[DAG from S3]
