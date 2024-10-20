@@ -1,6 +1,8 @@
 # Figma to DAG
 
 This project converts Figma file data to a Directed Acyclic Graph (DAG).
+<img width="1710" alt="image" src="https://github.com/user-attachments/assets/df256d6f-c629-4459-b322-3082a8edc3c2">
+
 
 ## Table of Contents
 
