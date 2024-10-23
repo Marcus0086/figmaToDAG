@@ -143,6 +143,13 @@ Improvements:
 - The handler can be improved by using another API call to get the file version first.
 - We can then fetch the data from DB if the version matches.
 - We can store the graph in S3 with version and file key. S3 is better choice since we can fetch the data multiple times and data is huge and json serializable.
+- For timeout or crashing issue we can increase timeout under general_configuration for lambda function and editing it and setting memory fro 128mb to 512mb - 1024mb, and changing timeout value from 3 seconds to 30 or 45 seconds to 1 minute in some cases.
+
+Here's a small video on how it can be done
+
+https://github.com/user-attachments/assets/e9f324d5-b9a5-4198-9a6e-2a867682ed55
+
+
 
 ```mermaid
 graph TD
