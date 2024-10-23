@@ -26,7 +26,7 @@ Resources:
       Runtime: nodejs20.x
       Architectures:
         - x86_64
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 100
       Description: A Lambda function to convert Figma designs to DAG.
       Environment:
