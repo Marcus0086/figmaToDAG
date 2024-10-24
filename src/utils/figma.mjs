@@ -14,12 +14,35 @@ function getActionName(triggerType) {
   return ACTION_NAMES[triggerType] || "Action";
 }
 
-function findAncestorFrame(node) {
-  if (!node) return null;
-  if (isInteractiveNode(node)) {
-    return node.id;
+/**
+ * Fetches the images for a list of node IDs
+ * @param {string} nodeIds - The node IDs
+ * @param {string} accessToken - The Figma access token
+ * @param {Array} nodes - The array of nodes
+ * @returns {Promise<Object>} Object containing the images
+ */
+async function getFigmaNodeImages(figmaFileKey, nodeIds, accessToken) {
+  const MAX_NODE_IDS_LENGTH = 100;
+  const imageResults = {};
+  const nodeIdsArray = nodeIds.split(",");
+  for (let i = 0; i < nodeIdsArray.length; i += MAX_NODE_IDS_LENGTH) {
+    const chunk = nodeIdsArray.slice(i, i + MAX_NODE_IDS_LENGTH).join(",");
+    try {
+      const response = await axios.get(
+        `https://api.figma.com/v1/images/${figmaFileKey}?ids=${chunk}`,
+        { headers: { "X-Figma-Token": accessToken } }
+      );
+      if (response.data.err !== null) {
+        console.error(`Error fetching node images: ${response.data.err}`);
+        continue;
+      }
+      const images = response.data.images;
+      Object.assign(imageResults, images);
+    } catch (error) {
+      console.error(`Error fetching node images: ${error.message}`);
+    }
   }
-  return findAncestorFrame(node.parent);
+  return imageResults;
 }
 
 /**
@@ -50,6 +73,63 @@ async function getFigmaFileVersion(figmaFileKey, accessToken) {
 }
 
 /**
+ * Traverses the Figma file data and builds the nodes and edges
+ * @param {Object} rootNode - The root node of the Figma file
+ * @param {Map} nodesMap - The map of nodes
+ * @param {Array} edges - The array of edges
+ */
+function traverseFigmaFileData(rootNode, nodesMap, edges) {
+  const stack = [{ node: rootNode, parent: null }];
+  while (stack.length > 0) {
+    const { node, parent } = stack.pop();
+    if (!node) continue;
+    let currentFrame = parent;
+    if (isInteractiveNode(node)) {
+      currentFrame = node;
+      nodesMap.set(node.id, {
+        id: node.id,
+        label: node.name,
+        type: node.type,
+        image: "",
+      });
+    }
+
+    if (node.interactions && node.interactions.length > 0 && currentFrame) {
+      for (const interaction of node.interactions) {
+        if (interaction && INTERACTION_TYPES.has(interaction.trigger.type)) {
+          const actions = interaction.actions || [];
+          for (const action of actions) {
+            if (action && action.destinationId) {
+              const sourceNodeId = currentFrame.id;
+              const targetNodeId = action.destinationId;
+              const sourceNode = nodesMap.get(sourceNodeId);
+              const targetNode = nodesMap.get(targetNodeId);
+              if (sourceNode && targetNode) {
+                edges.push({
+                  sourceId: sourceNodeId,
+                  targetId: targetNodeId,
+                  triggerType: interaction.trigger.type,
+                  label: `${getActionName(interaction.trigger.type)} on ${
+                    node.name
+                  }`,
+                  image: sourceNode.image || "",
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        stack.push({ node: child, parent: currentFrame });
+      }
+    }
+  }
+}
+
+/**
  * Fetches and processes Figma file data
  * @param {string} figmaFileKey - The Figma file key
  * @param {string} accessToken - The Figma access token
@@ -58,83 +138,31 @@ async function getFigmaFileVersion(figmaFileKey, accessToken) {
 async function getFigmaFileData(figmaFileKey, accessToken) {
   const nodesMap = new Map();
   const edges = [];
-  const apisToRequest = [
-    `https://api.figma.com/v1/files/${figmaFileKey}`,
-    `https://api.figma.com/v1/files/${figmaFileKey}/images`,
-  ];
+
   const headers = {
     "X-Figma-Token": accessToken,
   };
 
-  const requests = apisToRequest.map((url) => axios.get(url, { headers }));
-
-  const [figmaFileResponse, figmaImagesResponse] = await Promise.all(requests);
+  const figmaFileResponse = await axios.get(
+    `https://api.figma.com/v1/files/${figmaFileKey}`,
+    { headers }
+  );
 
   const figmaFileData = figmaFileResponse.data;
-  const figmaImages = figmaImagesResponse.data.meta.images;
-  function traverse(rootNode) {
-    const stack = [{ node: rootNode, parent: null }];
-    while (stack.length > 0) {
-      const { node, parent } = stack.pop();
-      if (!node) continue;
-      node.parent = parent;
-      if (isInteractiveNode(node)) {
-        let imageRef = null;
-        if (node.fills) {
-          for (const fill of node.fills) {
-            if (fill.type === "IMAGE" && fill.imageRef) {
-              imageRef = fill.imageRef;
-              break;
-            }
-          }
-        }
 
-        nodesMap.set(node.id, {
-          id: node.id,
-          label: node.name,
-          type: node.type,
-          image: figmaImages[imageRef] || "",
-        });
-      }
+  traverseFigmaFileData(figmaFileData.document, nodesMap, edges);
 
-      if (node.interactions && node.interactions.length > 0) {
-        for (const interaction of node.interactions) {
-          if (interaction && INTERACTION_TYPES.has(interaction.trigger.type)) {
-            const actions = interaction.actions || [];
-            for (const action of actions) {
-              if (action && action.destinationId) {
-                const sourceNodeId = findAncestorFrame(node);
-                const targetNodeId = action.destinationId;
-                const sourceNode = nodesMap.get(sourceNodeId);
-                const targetNode = nodesMap.get(targetNodeId);
-                if (sourceNode && targetNode) {
-                  edges.push({
-                    sourceId: sourceNodeId,
-                    targetId: targetNodeId,
-                    triggerType: interaction.trigger.type,
-                    actionType: action.transition?.type || null,
-                    label: `${getActionName(interaction.trigger.type)} on ${
-                      node.name
-                    }`,
-                    image: sourceNode.image || "",
-                  });
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (node.children && node.children.length > 0) {
-        for (let i = 0; i < node.children.length; i++) {
-          stack.push({ node: node.children[i], parent: node });
-        }
-      }
+  const nodes = Array.from(nodesMap.values());
+  const nodeIds = nodes.map((node) => node.id).join(",");
+  const images = await getFigmaNodeImages(figmaFileKey, nodeIds, accessToken);
+  if (Object.keys(images).length !== 0) {
+    for (const node of nodes) {
+      node.image = images[node.id] || "";
+    }
+    for (const edge of edges) {
+      edge.image = images[edge.sourceId] || "";
     }
   }
-
-  traverse(figmaFileData.document);
-  const nodes = Array.from(nodesMap.values());
   return { nodes, edges, figmaFileData };
 }
 
