@@ -42,6 +42,27 @@ Resources:
         - S3FullAccessPolicy:
             BucketName: figma-dag-bucket
 
+  VisualisationHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/visualisationHandler.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 100
+      Description: Render graph using D3.js
+      Environment:
+        Variables:
+          S3_BUCKET: figma-dag-bucket
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: figma-dag-bucket
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"

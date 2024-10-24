@@ -4,7 +4,6 @@ This project converts Figma file data to a Directed Acyclic Graph (DAG).
 
 <img width="1710" alt="image" src="https://github.com/user-attachments/assets/47a5fecb-2186-49e1-8fa7-6724c5a7eeb4">
 
-
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -149,8 +148,6 @@ Here's a small video on how it can be done
 
 https://github.com/user-attachments/assets/e9f324d5-b9a5-4198-9a6e-2a867682ed55
 
-
-
 ```mermaid
 graph TD
     A[User Request] -->|API Request| B[Lambda Function]
@@ -177,4 +174,10 @@ graph TD
 
 ```sh
 curl -X POST https://<api-gateway-url>/figmaToDAG -H "Content-Type: application/json" -d '{"file_key": "<figma-file-key>", "access_token": "<figma-access-token>", "build_adjacency_matrix": "<true/false>"}'
+```
+
+# To render the graph visualization using Cytoscape
+
+```sh
+curl -X GET "https://<api-gateway-url>?file_key=<figma-file-key>&access_token=<figma-access-token>"
 ```
